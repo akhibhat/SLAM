@@ -1,0 +1,11 @@
+*.swp
+*.pyc
+*.pkl
+*.mat
+*.tar
+*.zip
+
+*.log
+*.jpg
+
+MapUtils/__pycache__/
