@@ -114,44 +114,67 @@ class SLAM(object):
         first_lidar = self.lidar_.data_[0]
         # Extract corresponding joint data
         joint_idx = np.where(first_lidar['t'][0] <= self.joints_.data_['ts'][0])[0][0]
-        first_head_angle = self.joints_.data_['head_angles'][1,joint_idx]
-        neck_angle = self.joints_.data_['head_angles'][0,joint_idx]
+        head_angle, neck_angle = self.joints_.data_['head_angles'][:,joint_idx]
 
         pose = first_lidar['pose'][0]
         scans = first_lidar['scan'][0]
         lidar_res = first_lidar['res'][0][0]
-        # ray_angles = np.linspace(-2.355, 2.355, first_lidar)
+        ray_angles = np.linspace(-2.355, 2.355, len(scans))
 
-        # Get distance, ray_angle and then remove ground
+        self.L_MIN = self.lidar_.L_MIN
+        self.L_MAX = self.lidar_.L_MAX
+
+        # Get valid indices by clipping lidar rays between self.L_MAX and self.L_MIN
+        # scans = np.clip(scans, self.L_MIN, self.L_MAX)
+
+        valid_idx = np.logical_and((scans >= self.L_MIN), (scans < self.L_MAX))
+        scans = scans[valid_idx]
+
+        ray_angles = ray_angles[valid_idx]
+
+        dmax = scans * np.cos(head_angle)
+        dmin = (self.L_MIN * np.cos(head_angle)) * np.ones_like(dmax)
+
+        e_scan_x_lidar = dmax * np.cos(ray_angles)
+        e_scan_y_lidar = dmax * np.sin(ray_angles)
+        one_vec = np.ones_like(e_scan_x_lidar)
+
+        e_scan_lidar = np.vstack((e_scan_x_lidar, e_scan_y_lidar, one_vec))
+
+        s_scan_x_lidar = dmin * np.cos(ray_angles)
+        s_scan_y_lidar = dmin * np.sin(ray_angles)
+
+        s_scan_lidar = np.vstack((s_scan_x_lidar, s_scan_y_lidar, one_vec))
+
+        # Required transformation matrices
+        world_2_part = tf.twoDTransformation(pose[0], pose[1], pose[2])
+        body_2_head = tf.twoDTransformation(0,0,neck_angle) #TODO Check
+
+        e_scan_body = np.matmul(body_2_head, e_scan_lidar)
+        e_scan_world = np.matmul(world_2_part, e_scan_body)
+
+        s_scan_body = np.matmul(body_2_head, s_scan_lidar)
+        s_scan_world = np.matmul(world_2_part, s_scan_body)
+
+        e_scan_world = e_scan_world[0:2, :]
+        s_scan_world = s_scan_world[0:2, :]
+
+        [siX, siY] = self.lidar_._physicPos2Pos(MAP, s_scan_world)
+        [eiX, eiY] = self.lidar_._physicPos2Pos(MAP, e_scan_world)
+
         for i in range(len(scans)):
-            # pdb.set_trace()
-            ray_angle = -2.355 + i*lidar_res
-            [dmin, dmax, last_occu, _] = self.lidar_._remove_ground(self.h_lidar_, ray_angle, scans[i], first_head_angle)
+            # Get all cells covered by lidar ray
+            covered_cells = self.lidar_._cellsFrom2Points([siX[i], siY[i], eiX[i], eiY[i]])
 
-            # Get the start point and end point in world frame (_ray2world?)
-            rayPoints = self.lidar_._ray2worldPhysicsPos(pose, neck_angle, [dmin, dmax, last_occu, ray_angle])
-            # Convert start and end points into map indices
-            if rayPoints is not None:
+            covered_cells = covered_cells.astype(int)
 
-                [siX, siY] = self.lidar_._physicPos2Pos(MAP, rayPoints[:2])
-                [eiX, eiY] = self.lidar_._physicPos2Pos(MAP, rayPoints[2:])
-                # Get all cells covered by lidar ray
-                covered_cells = self.lidar_._cellsFrom2Points([siX, siY, eiX, eiY])
-
-                covered_cells = covered_cells.astype(int)
-
-                self.num_m_per_cell_[covered_cells[0,:], covered_cells[1,:]] += 1
-
-                if not last_occu:
-                    self.log_odds_[covered_cells[0,:], covered_cells[1,:]] += np.log(self.p_false_)
-                else:
-                    self.log_odds_[covered_cells[0,:-1], covered_cells[1,:-1]] += np.log(self.p_false_)
-                    self.log_odds_[covered_cells[0,-1], covered_cells[1,-1]] += np.log(self.p_true_)
+            #if not last_occu:
+            #    self.log_odds_[covered_cells[0,:], covered_cells[1,:]] += np.log(self.p_false_)
+            # else:
+            self.log_odds_[covered_cells[0,:-1], covered_cells[1,:-1]] += np.log(self.p_false_)
+            self.log_odds_[covered_cells[0,-1], covered_cells[1,-1]] += np.log(self.p_true_)
 
 
-            else:
-                # pdb.set_trace()
-                pass
         MAP['map'] = (self.log_odds_ > self.logodd_thresh_).astype(int)
 
         # End code
@@ -186,26 +209,47 @@ class SLAM(object):
         lidar_res = lidar_t['res'][0][0]
         # Get corresponding joint index
         joint_idx = np.where(lidar_t['t'][0] < self.joints_.data_['ts'][0])[0][0]
-        head_angle = self.joints_.data_['head_angles'][1,joint_idx]
-        neck_angle = self.joints_.data_['head_angles'][0,joint_idx]
+        head_angle, neck_angle = self.joints_.data_['head_angles'][:,joint_idx]
+
+        # scans = np.clip(scans, self.L_MIN, self.L_MAX)
+        ray_angles = np.linspace(-2.355, 2.355, len(scans))
+
+        valid_idx = np.logical_and((scans >= self.L_MIN), (scans < self.L_MAX))
+        scans = scans[valid_idx]
+        ray_angles = ray_angles[valid_idx]
+
+        dmax = scans * np.cos(head_angle)
+        dmin = (self.L_MIN * np.cos(head_angle)) * np.ones_like(dmax)
+
+        e_scan_x_lidar = dmax * np.cos(ray_angles)
+        e_scan_y_lidar = dmax * np.sin(ray_angles)
+        one_vec = np.ones_like(e_scan_x_lidar)
+
+        e_scan_lidar = np.vstack((e_scan_x_lidar, e_scan_y_lidar, one_vec))
+
+        s_scan_x_lidar = dmin * np.cos(ray_angles)
+        s_scan_y_lidar = dmin * np.sin(ray_angles)
+
+        s_scan_lidar = np.vstack((s_scan_x_lidar, s_scan_y_lidar, one_vec))
+
+        body_2_head = tf.twoDTransformation(0,0,neck_angle) #TODO Check
+
+        e_scan_body = np.matmul(body_2_head, e_scan_lidar)
+        s_scan_body = np.matmul(body_2_head, s_scan_lidar)
 
         MAP = self.MAP_
         correlations = np.zeros(self.num_p_)
 
         for i in range(self.num_p_):
             particle_pose = self.particles_[:,i]
-            occupied_cells = []
 
-            for j in range(len(scans)):
-                ray_angle = -2.355 + i*lidar_res
+            world_2_part = tf.twoDTransformation(particle_pose[0], particle_pose[1], particle_pose[2])
+            e_scan_world = np.matmul(world_2_part, e_scan_body)
+            e_scan_world = e_scan_world[0:2, :]
 
-                [dmin, dmax, last_occu, _] = self.lidar_._remove_ground(self.h_lidar_, ray_angle, scans[j], head_angle)
-                rayPoints = self.lidar_._ray2worldPhysicsPos(particle_pose, neck_angle, [dmin, dmax, last_occu, ray_angle])
+            [eiX, eiY] = self.lidar_._physicPos2Pos(MAP, e_scan_world)
 
-                if rayPoints is not None:
-                    [eiX, eiY] = self.lidar_._physicPos2Pos(MAP, rayPoints[2:])
-                if last_occu:
-                    occupied_cells.append([eiX, eiY])
+            occupied_cells = [eiX, eiY]
 
             occupied_cells = np.asarray(occupied_cells).T
             correlations[i] = prob.mapCorrelation(MAP['map'], occupied_cells)
@@ -219,29 +263,34 @@ class SLAM(object):
 
         self.best_p_[:,t] = self.particles_[:,best_particle_idx]
         # self.best_p_indices_[:,t] =
+        best_part_pos = self.best_p_[:,t]
+
+        world_2_part = tf.twoDTransformation(best_part_pos[0], best_part_pos[1], best_part_pos[1])
+        e_scan_world = np.matmul(world_2_part, e_scan_body)
+        s_scan_world = np.matmul(world_2_part, s_scan_body)
+
+        e_scan_world = e_scan_world[0:2, :]
+        s_scan_world = s_scan_world[0:2, :]
+
+        [best_eiX, best_eiY] = self.lidar_._physicPos2Pos(MAP, e_scan_world)
+        [best_siX, best_siY] = self.lidar_._physicPos2Pos(MAP, s_scan_world)
 
         for i in range(len(scans)):
-            ray_angle = -2.355 + i*lidar_res
-            [dmin, dmax, last_occu, _] = self.lidar_._remove_ground(self.h_lidar_, ray_angle, scans[i], head_angle)
-            rayPoints = self.lidar_._ray2worldPhysicsPos(self.best_p_[:,t], neck_angle, [dmin, dmax, last_occu, ray_angle])
+            try:
+                covered_cells = self.lidar_._cellsFrom2Points([best_siX[i], best_siY[i], best_eiX[i], best_eiY[i]])
 
-            if rayPoints is not None:
-                [eiX, eiY] = self.lidar_._physicPos2Pos(MAP, rayPoints[2:])
-                [siX, siY] = self.lidar_._physicPos2Pos(MAP, rayPoints[:2])
-
-                covered_cells = self.lidar_._cellsFrom2Points([siX, siY, eiX, eiY])
 
                 covered_cells = covered_cells.astype(int)
 
-                if not last_occu:
-                    self.log_odds_[covered_cells[0,:], covered_cells[1,:]] += np.log(self.p_false_)
-                else:
-                    self.log_odds_[covered_cells[0,:-1], covered_cells[1,:-1]] += np.log(self.p_false_)
-                    self.log_odds_[covered_cells[0,-1], covered_cells[1,-1]] += np.log(self.p_true_)
-            else:
-                # pdb.set_trace()
-                pass
+                if covered_cells.any() < 0:
+                    pdb.set_trace()
 
+                self.log_odds_[covered_cells[0,:-1], covered_cells[1,:-1]] += np.log(self.p_false_)
+                self.log_odds_[covered_cells[0,-1], covered_cells[1,-1]] += np.log(self.p_true_)
+
+            except:
+                pdb.set_trace()
+                continue
         MAP['map'] = (self.log_odds_ > self.logodd_thresh_).astype(int)
 
         self.MAP_ = MAP
