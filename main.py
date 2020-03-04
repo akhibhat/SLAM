@@ -164,7 +164,7 @@ def particle_SLAM(src_dir, dataset_id=0, split_name='train', running_mode='test_
     mov_cov = np.array([[1e-8, 0, 0],[0, 1e-8, 0],[0, 0 , 1e-8]])
 
     #TODO: set a threshold value of probability to consider a map's cell occupied  
-    p_thresh = 0.4
+    p_thresh = 0.6
 
     #TODO: change the threshold of the percentage of effective particles to decide resampling 
     percent_eff_p_thresh = 0.5
