@@ -225,45 +225,45 @@ def particle_SLAM(src_dir, dataset_id=0, split_name='train', running_mode='test_
         slam_inc._predict(t)
 
         # Update
-        slam_inc._update(t,t0=t0,fig='off')
-
-        # Resample particles if necessary
-        num_eff = 1.0/np.sum(np.dot(slam_inc.weights_,slam_inc.weights_))
-        logging.debug('>> Number of effective particles: %.2f'%num_eff)
-
-        if num_eff < slam_inc.percent_eff_p_thresh_*slam_inc.num_p_:
-            num_resamples += 1
-            logging.debug('>> Resampling since this < threshold={0}| Resampling times/t = {1}/{2}'.format(\
-                slam_inc.percent_eff_p_thresh_*slam_inc.num_p_, num_resamples, t-t0 + 1))
-            [slam_inc.particles_,slam_inc.weights_] = prob.stratified_resampling(\
-                slam_inc.particles_,slam_inc.weights_,slam_inc.num_p_)
-
-        # Plot the estimated trajectory
-        if (t - t0 + 1)%1000 == 0 or t==num_steps-1:
-            # Save the result 
-            log_file = log_dir + '/SLAM_' + split_name + '_' + str(dataset_id) + '.pkl'
-            try:
-                with open(log_file, 'wb') as f:
-                    pickle.dump(slam_inc,f,pickle.HIGHEST_PROTOCOL)
-                print(">> Save the result to: %s"%log_file)
-            except Exception as e:
-                print('Unable to write data to', log_file, ':', e)
-                raise
-
-
-            # Gen map + trajectory
-            MAP_2_display = genMap(slam_inc, t)
-            MAP_fig_path = log_dir + '/processing_SLAM_map_'+ split_name + '_' + str(dataset_id) + '.jpg'
-            cv2.imwrite(MAP_fig_path, MAP_2_display)
-            plt.title('Estimated Map at time stamp %d/%d'%(t, num_steps - t0 + 1))
-            plt.imshow(MAP_2_display)
-            plt.pause(0.01)
-
-            logging.debug(">> Save %s"%MAP_fig_path)
+#        slam_inc._update(t,t0=t0,fig='off')
+#
+#        # Resample particles if necessary
+#        num_eff = 1.0/np.sum(np.dot(slam_inc.weights_,slam_inc.weights_))
+#        logging.debug('>> Number of effective particles: %.2f'%num_eff)
+#
+#        if num_eff < slam_inc.percent_eff_p_thresh_*slam_inc.num_p_:
+#            num_resamples += 1
+#            logging.debug('>> Resampling since this < threshold={0}| Resampling times/t = {1}/{2}'.format(\
+#                slam_inc.percent_eff_p_thresh_*slam_inc.num_p_, num_resamples, t-t0 + 1))
+#            [slam_inc.particles_,slam_inc.weights_] = prob.stratified_resampling(\
+#                slam_inc.particles_,slam_inc.weights_,slam_inc.num_p_)
+#
+#        # Plot the estimated trajectory
+#        if (t - t0 + 1)%1000 == 0 or t==num_steps-1:
+#            # Save the result 
+#            log_file = log_dir + '/SLAM_' + split_name + '_' + str(dataset_id) + '.pkl'
+#            try:
+#                with open(log_file, 'wb') as f:
+#                    pickle.dump(slam_inc,f,pickle.HIGHEST_PROTOCOL)
+#                print(">> Save the result to: %s"%log_file)
+#            except Exception as e:
+#                print('Unable to write data to', log_file, ':', e)
+#                raise
+#
+#
+#            # Gen map + trajectory
+#            MAP_2_display = genMap(slam_inc, t)
+#            MAP_fig_path = log_dir + '/processing_SLAM_map_'+ split_name + '_' + str(dataset_id) + '.jpg'
+#            cv2.imwrite(MAP_fig_path, MAP_2_display)
+#            plt.title('Estimated Map at time stamp %d/%d'%(t, num_steps - t0 + 1))
+#            plt.imshow(MAP_2_display)
+#            plt.pause(0.01)
+#
+#            logging.debug(">> Save %s"%MAP_fig_path)
 
     # Return best_p which are an array of size 3xnum_data that represents the best particle over the whole time stamp
     # return slam_inc.best_p_
-    return np.random.rand(3, slam_inc.num_data)
+    return np.random.rand(3, slam_inc.num_data_)
 
 def main():
     parser = argparse.ArgumentParser('main function')
