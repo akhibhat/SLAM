@@ -57,7 +57,7 @@ class SLAM(object):
         self.p_false_ = 1.0/9
 
         #TODO set a threshold value of probability to consider a map's cell occupied
-        self.p_thresh_ = 0.6 if p_thresh is None else p_thresh
+        self.p_thresh_ = 0.4 if p_thresh is None else p_thresh
 
         # Compute the corresponding threshold value of logodd
         self.logodd_thresh_ = prob.log_thresh_from_pdf_thresh(self.p_thresh_)
@@ -194,6 +194,7 @@ class SLAM(object):
         new_particles = np.zeros(self.particles_.shape)
         for i in range(self.num_p_):
             new_particles[:,i] = tf.twoDSmartPlus(tf.twoDSmartPlus(self.particles_[:,i], tf.twoDSmartMinus(odom_curr, odom_prev)), noise_vectors[:,i])
+            # new_particles[:,i] = tf.twoDSmartPlus(self.particles_[:,i], noise_vectors[:,i])
         self.particles_ = new_particles
 
 
@@ -283,13 +284,13 @@ class SLAM(object):
                 covered_cells = covered_cells.astype(int)
 
                 if covered_cells.any() < 0:
-                    pdb.set_trace()
+                    continue
 
                 self.log_odds_[covered_cells[0,:-1], covered_cells[1,:-1]] += np.log(self.p_false_)
                 self.log_odds_[covered_cells[0,-1], covered_cells[1,-1]] += np.log(self.p_true_)
 
             except:
-                pdb.set_trace()
+                # pdb.set_trace()
                 continue
         MAP['map'] = (self.log_odds_ > self.logodd_thresh_).astype(int)
 
