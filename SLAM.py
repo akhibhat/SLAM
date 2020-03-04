@@ -120,38 +120,31 @@ class SLAM(object):
         pose = first_lidar['pose'][0]
         scans = first_lidar['scan'][0]
         lidar_res = first_lidar['res'][0][0]
-        # ray_angles = np.linspace(-2.355, 2.355, first_lidar)
+        ray_angles = np.linspace(-2.355, 2.355, len(scans))
+
+        dmin = np.zeros_like(scans)
+        dmax = np.zeros_like(scans)
+        last_occu = np.zeros_like(scans)
+
+        for i in range(len(scans)):
+
+            [dmin[i], dmax[i], last_occu[i], _] = self.lidar_._remove_ground(self.h_lidar_, ray_angles[i], scans[i], first_head_angle)
+
+        [sX, sY, eX, eY] = self.lidar_._ray2worldPhysicsPos(pose, neck_angle, np.array([dmin, dmax, last_occu, ray_angles]))
+
+        [siX, siY] = self.lidar_._physicPos2Pos(MAP, [sX, sY])
+        [eiX, eiY] = self.lidar_._physicPos2Pos(MAP, [eX, eY])
 
         # Get distance, ray_angle and then remove ground
         for i in range(len(scans)):
-            # pdb.set_trace()
-            ray_angle = -2.355 + i*lidar_res
-            [dmin, dmax, last_occu, _] = self.lidar_._remove_ground(self.h_lidar_, ray_angle, scans[i], first_head_angle)
-
-            # Get the start point and end point in world frame (_ray2world?)
-            rayPoints = self.lidar_._ray2worldPhysicsPos(pose, neck_angle, [dmin, dmax, last_occu, ray_angle])
-            # Convert start and end points into map indices
-            if rayPoints is not None:
-
-                [siX, siY] = self.lidar_._physicPos2Pos(MAP, rayPoints[:2])
-                [eiX, eiY] = self.lidar_._physicPos2Pos(MAP, rayPoints[2:])
                 # Get all cells covered by lidar ray
-                covered_cells = self.lidar_._cellsFrom2Points([siX, siY, eiX, eiY])
+            covered_cells = self.lidar_._cellsFrom2Points([siX[i], siY[i], eiX[i], eiY[i]])
 
-                covered_cells = covered_cells.astype(int)
+            covered_cells = covered_cells.astype(int)
 
-                self.num_m_per_cell_[covered_cells[0,:], covered_cells[1,:]] += 1
+            self.log_odds_[covered_cells[0,:-1], covered_cells[1,:-1]] += np.log(self.p_false_)
+            self.log_odds_[covered_cells[0,-1], covered_cells[1,-1]] += np.log(self.p_true_)
 
-                if not last_occu:
-                    self.log_odds_[covered_cells[0,:], covered_cells[1,:]] += np.log(self.p_false_)
-                else:
-                    self.log_odds_[covered_cells[0,:-1], covered_cells[1,:-1]] += np.log(self.p_false_)
-                    self.log_odds_[covered_cells[0,-1], covered_cells[1,-1]] += np.log(self.p_true_)
-
-
-            else:
-                # pdb.set_trace()
-                pass
         MAP['map'] = (self.log_odds_ > self.logodd_thresh_).astype(int)
 
         # End code
@@ -192,20 +185,20 @@ class SLAM(object):
         MAP = self.MAP_
         correlations = np.zeros(self.num_p_)
 
+        for i in range(len(scans)):
+            [dmin[i], dmax[i], last_occu[i], _] = self.lidar_._remove_ground(self.h_lidar_, ray_angles[i], scans[i], head_angle)
+
+
         for i in range(self.num_p_):
             particle_pose = self.particles_[:,i]
             occupied_cells = []
 
-            for j in range(len(scans)):
-                ray_angle = -2.355 + i*lidar_res
+            rayPoints = self.lidar_._ray2worldPhysicsPos(particle_pose, neck_angle, [dmin, dmax, last_occu, ray_angle])
 
-                [dmin, dmax, last_occu, _] = self.lidar_._remove_ground(self.h_lidar_, ray_angle, scans[j], head_angle)
-                rayPoints = self.lidar_._ray2worldPhysicsPos(particle_pose, neck_angle, [dmin, dmax, last_occu, ray_angle])
+            [eiX, eiY] = self.lidar_._physicPos2Pos(MAP, rayPoints[2:])
 
-                if rayPoints is not None:
-                    [eiX, eiY] = self.lidar_._physicPos2Pos(MAP, rayPoints[2:])
-                if last_occu:
-                    occupied_cells.append([eiX, eiY])
+            if last_occu:
+                occupied_cells.append([eiX, eiY])
 
             occupied_cells = np.asarray(occupied_cells).T
             correlations[i] = prob.mapCorrelation(MAP['map'], occupied_cells)

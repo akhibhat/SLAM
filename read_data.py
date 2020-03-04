@@ -9,7 +9,8 @@ import load_data as ld
 import time
 import math
 import transformations as tf
-from math import cos, sin
+from numpy import cos, sin
+import pdb
 
 class JOINTS:
     """ Return data collected from IMU and anything not related to lidar
@@ -149,8 +150,7 @@ class LIDAR:
         world_to_part_rot = tf.twoDTransformation(R_pose[0], R_pose[1], R_pose[2])
         [dmin,dmax,last_occu,ray_angle] = ray_combo
 
-        if last_occu == 0:
-            return None
+        [dmin,dmax,last_occu,ray_angle] = ray_combo[:,last_occu==1]
 
         # Physical position of ending point of the line wrt the head of the robot
         ex_h = dmax*cos(ray_angle)
@@ -158,8 +158,11 @@ class LIDAR:
         sx_h = dmin*cos(ray_angle)
         sy_h = dmin*sin(ray_angle)
 
-        exy1_r = np.dot(body_to_head_rot, np.array([ex_h, ey_h, 1]))
-        sxy1_r = np.dot(body_to_head_rot, np.array([sx_h, sy_h, 1]))
+        e_h = np.vstack((ex_h, ey_h, np.ones_like(ex_h)))
+        s_h = np.vstack((sx_h, sy_h, np.ones_like(ex_h)))
+
+        exy1_r = np.dot(body_to_head_rot, e_h)
+        sxy1_r = np.dot(body_to_head_rot, s_h)
 
         [eX, eY, _] = np.dot(world_to_part_rot, exy1_r)
         [sX, sY, _] = np.dot(world_to_part_rot, sxy1_r)
