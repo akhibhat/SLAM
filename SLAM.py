@@ -126,9 +126,11 @@ class SLAM(object):
         dmax = np.zeros_like(scans)
         last_occu = np.zeros_like(scans)
 
-        for i in range(len(scans)):
+#        for i in range(len(scans)):
+#
+#            [dmin[i], dmax[i], last_occu[i], _] = self.lidar_._remove_ground(self.h_lidar_, ray_angles[i], scans[i], first_head_angle)
 
-            [dmin[i], dmax[i], last_occu[i], _] = self.lidar_._remove_ground(self.h_lidar_, ray_angles[i], scans[i], first_head_angle)
+        [dmin, dmax, last_occu, _] = self.lidar_._remove_ground(self.h_lidar_, ray_angles, scans, first_head_angle)
 
         dmin = dmin[last_occu==1]
         dmax = dmax[last_occu==1]
@@ -168,7 +170,8 @@ class SLAM(object):
 
         new_particles = np.zeros(self.particles_.shape)
         for i in range(self.num_p_):
-            new_particles[:,i] = tf.twoDSmartPlus(tf.twoDSmartPlus(self.particles_[:,i], tf.twoDSmartMinus(odom_curr, odom_prev)), noise_vectors[:,i])
+            # new_particles[:,i] = tf.twoDSmartPlus(tf.twoDSmartPlus(self.particles_[:,i], tf.twoDSmartMinus(odom_curr, odom_prev)), noise_vectors[:,i])
+            new_particles[:,i] = tf.twoDSmartPlus(self.particles_[:,i], noise_vectors[:,i])
         self.particles_ = new_particles
 
 
@@ -265,8 +268,10 @@ class SLAM(object):
         self.lidar_angles = np.linspace(-2.356,2.356,len(scans))
         scan_clean = np.zeros((4,len(self.lidar_angles)))
         scan_world = np.zeros((4,len(self.lidar_angles)))
-        for i in range(len(self.lidar_angles)):
-            scan_clean[:,i] = self.lidar_._remove_ground(self.h_lidar_,ray_angle=self.lidar_angles[i],ray_l=scans[i],head_angle=first_head_angle)
+#        for i in range(len(self.lidar_angles)):
+#            scan_clean[:,i] = self.lidar_._remove_ground(self.h_lidar_,ray_angle=self.lidar_angles[i],ray_l=scans[i],head_angle=first_head_angle)
+
+        scan_clean = self.lidar_._remove_ground(self.h_lidar_, self.lidar_angles, scans, first_head_angle)
         corr = np.zeros(self.particles_.shape[1])
 
         for particle_num in range(self.particles_.shape[1]):
@@ -304,8 +309,11 @@ class SLAM(object):
         self.lidar_angles = np.linspace(-2.356,2.356,len(scans))
         scan_clean = np.zeros((4,len(self.lidar_angles)))
         scan_world = np.zeros((4,len(self.lidar_angles)))
-        for i in range(len(self.lidar_angles)):
-            scan_clean[:,i] = self.lidar_._remove_ground(self.h_lidar_,ray_angle=self.lidar_angles[i],ray_l=scans[i],head_angle=first_head_angle)
+#        for i in range(len(self.lidar_angles)):
+#            scan_clean[:,i] = self.lidar_._remove_ground(self.h_lidar_,ray_angle=self.lidar_angles[i],ray_l=scans[i],head_angle=first_head_angle)
+#
+        scan_clean = self.lidar_._remove_ground(self.h_lidar_, self.lidar_angles, scans, first_head_angle)
+
         scan_world = self.lidar_._ray2worldPhysicsPos(pose,first_head_angle,scan_clean)
 
 
