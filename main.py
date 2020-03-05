@@ -270,7 +270,7 @@ def main():
     parser = argparse.ArgumentParser('main function')
     parser.add_argument('--src_dir',    help="Directory to the data...i.e: data", default='data', type=str)
     parser.add_argument('--log_dir',    help="Directory to save logs",            default='logs', type=str)
-    parser.add_argument('--dataset_id', help="Dataset id=0, 1, 2. ..?",           default=0, type=int)
+    parser.add_argument('--dataset_id', help="Dataset id=0, 1, 2. ..?",           default=3, type=int)
     parser.add_argument('--split_name', help="Train or test split?",              default='train', type=str)
     parser.add_argument('--running_mode', help="Test prediction/Update/SLAM?",    default='test_SLAM', type=str,\
                                         choices=['test_SLAM', 'test_prediction', 'test_update'])

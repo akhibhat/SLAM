@@ -132,10 +132,12 @@ class SLAM(object):
 
         [dmin, dmax, last_occu, _] = self.lidar_._remove_ground(self.h_lidar_, ray_angles, scans, first_head_angle)
 
+        # pdb.set_trace()
+
         dmin = dmin[last_occu==1]
         dmax = dmax[last_occu==1]
-        last_occu = last_occu[last_occu == 1]
         ray_angles = ray_angles[last_occu == 1]
+        last_occu = last_occu[last_occu == 1]
 
         [sX, sY, eX, eY] = self.lidar_._ray2worldPhysicsPos(pose, neck_angle, np.array([dmin, dmax, last_occu, ray_angles]))
 
@@ -143,7 +145,7 @@ class SLAM(object):
         [eiX, eiY] = self.lidar_._physicPos2Pos(MAP, [eX, eY])
 
         # Get distance, ray_angle and then remove ground
-        for i in range(len(scans)):
+        for i in range(len(siX)):
                 # Get all cells covered by lidar ray
             covered_cells = self.lidar_._cellsFrom2Points([siX[i], siY[i], eiX[i], eiY[i]])
 
