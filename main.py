@@ -158,7 +158,7 @@ def particle_SLAM(src_dir, dataset_id=0, split_name='train', running_mode='test_
 
     # Number of particles 
     #TODO: change the number of particles
-    num_p = 100
+    num_p = 200
 
     #TODO: change the process' covariance matrix 
     mov_cov = np.array([[1e-8, 0, 0],[0, 1e-8, 0],[0, 0 , 1e-8]])
@@ -186,7 +186,7 @@ def particle_SLAM(src_dir, dataset_id=0, split_name='train', running_mode='test_
 
     # Read data
     slam_inc._read_data(src_dir, dataset_id, split_name)
-    num_steps = 100# slam_inc.num_data_
+    num_steps = slam_inc.num_data_
 
     # Characterize the sensors' specifications
     slam_inc._characterize_sensor_specs(p_thresh)

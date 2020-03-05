@@ -167,7 +167,7 @@ class LIDAR:
         [eX, eY, _] = np.dot(world_to_part_rot, exy1_r)
         [sX, sY, _] = np.dot(world_to_part_rot, sxy1_r)
 
-        return [sX, sY, eX, eY]
+        return np.array([sX, sY, eX, eY])
 
     def _physicPos2Pos(self, MAP, pose):
         """ Return the corresponding indices in MAP array, given the physical position"""
@@ -189,7 +189,7 @@ class LIDAR:
 
         cells = bresenham2D(sx, sy, ex, ey)
 
-        return cells
+        return cells.astype(np.int16)
 
 
 def test_remove_ground():
