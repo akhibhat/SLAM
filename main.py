@@ -73,7 +73,7 @@ def test_prediction(src_dir, dataset_id=0, split_name='train', log_dir='logs', i
     num_p = 3
     weights = np.ones(num_p) * 1.0/num_p
     particles = np.zeros((3, num_p), dtype=np.float64)
-    mov_cov = np.array([[1e-1, 0, 0], [0, 1e-1, 0], [0, 0, 1e-1]])
+    mov_cov = np.array([[1e-8, 0, 0], [0, 1e-8, 0], [0, 0, 1e-8]])
 
     slam_inc._init_particles(num_p=num_p, particles=particles, weights=weights, mov_cov=mov_cov)
 
@@ -161,7 +161,7 @@ def particle_SLAM(src_dir, dataset_id=0, split_name='train', running_mode='test_
     num_p = 100
 
     #TODO: change the process' covariance matrix 
-    mov_cov = np.array([[1e-8, 0, 0],[0, 1e-8, 0],[0, 0 , 1e-2]])
+    mov_cov = np.array([[1e-8, 0, 0],[0, 1e-8, 0],[0, 0 , 200]])
 
     #TODO: set a threshold value of probability to consider a map's cell occupied  
     p_thresh = 0.6
@@ -270,7 +270,7 @@ def main():
     parser = argparse.ArgumentParser('main function')
     parser.add_argument('--src_dir',    help="Directory to the data...i.e: data", default='data', type=str)
     parser.add_argument('--log_dir',    help="Directory to save logs",            default='logs', type=str)
-    parser.add_argument('--dataset_id', help="Dataset id=0, 1, 2. ..?",           default=3, type=int)
+    parser.add_argument('--dataset_id', help="Dataset id=0, 1, 2. ..?",           default=0, type=int)
     parser.add_argument('--split_name', help="Train or test split?",              default='train', type=str)
     parser.add_argument('--running_mode', help="Test prediction/Update/SLAM?",    default='test_SLAM', type=str,\
                                         choices=['test_SLAM', 'test_prediction', 'test_update'])

@@ -88,59 +88,64 @@ class LIDAR:
         """
         #TODO: truncate 0.1m as a limit to the min of lidar ray which is accepted
 
-        above30_idx = np.where(ray_l > 30)
-        below30_idx = np.where(ray_l < 30)
-
-        dmin = np.ones_like(ray_angle)
-        dmax = np.zeros_like(ray_angle)
-        last_occu = np.zeros_like(ray_angle)
-
-        dmin = dmin * cos(head_angle) * self.L_MIN
-        dmax[above30_idx] = self.L_MAX
-
-        try:
-            delta_l = h_min/sin(head_angle)
-            l2ground = h_lidar/sin(head_angle)
-            new_l = l2ground = delta_l
-
-            below30 = np.array(below30_idx)[0]
-
-            for i in below30:
-                if ray_l[i] < new_l:
-                    dmax[i] = ray_l[i] * np.cos(head_angle)
-                    last_occu[i] = 1
-                else:
-                    dmax[i] = new_l * np.cos(head_angle)
-
-        except:
-            dmax[below30_idx] = cos(head_angle) * scans[below30_idx]
-            last_occu[below30_idx] = 1
-
-#        if ray_l >= 30:
-#            dmin = cos(head_angle) * self.L_MIN
-#            dmax = self.L_MAX
+#        above30_idx = np.where(ray_l > 30)
+#        below30_idx = np.where(ray_l < 30)
 #
-#            last_occu = 0
+#        dmin = np.ones_like(ray_angle)
+#        dmax = np.zeros_like(ray_angle)
+#        last_occu = np.zeros_like(ray_angle)
 #
-#        else:
-#            try:
-#                dmin = cos(head_angle) * self.L_MIN
-#                delta_l = h_min/sin(head_angle)
+#        dmin = dmin * cos(head_angle) * self.L_MIN
+#        dmax[above30_idx] = self.L_MAX
 #
-#                l2ground = h_lidar/sin(head_angle)
-#                new_l = l2ground - delta_l
+#        try:
+#            delta_l = h_min/sin(head_angle)
+#            l2ground = h_lidar/sin(head_angle)
+#            new_l = l2ground = delta_l
 #
-#                if new_l > ray_l:
-#                    dmax = ray_l*cos(head_angle)
-#                    last_occu = 1
+#            below30 = np.array(below30_idx)[0]
+#
+#            for i in below30:
+#                if ray_l[i] < new_l:
+#                    dmax[i] = ray_l[i] * np.cos(head_angle)
+#                    last_occu[i] = 1
 #                else:
-#                    dmax = new_l*cos(head_angle)
-#                    last_occu = 0
+#                    dmax[i] = new_l * np.cos(head_angle)
 #
-#            except:
-#                dmin = cos(head_angle) * self.L_MIN
-#                dmax = cos(head_angle) * ray_l
-#                last_occu = 1
+#        except:
+#            dmax[below30_idx] = cos(head_angle) * scans[below30_idx]
+#            last_occu[below30_idx] = 1
+
+        if ray_l >= 30:
+            dmin = cos(head_angle) * self.L_MIN
+            dmax = self.L_MAX
+
+            last_occu = 0
+
+        elif ray_l < 30 and head_angle < 0.001:
+            dmin = cos(head_angle) * self.L_MIN
+            dmax = ray_l
+
+            last_occu = 1
+        else:
+            try:
+                dmin = cos(head_angle) * self.L_MIN
+                delta_l = h_min/sin(head_angle)
+
+                l2ground = h_lidar/sin(head_angle)
+                new_l = l2ground - delta_l
+
+                if new_l > ray_l:
+                    dmax = ray_l*cos(head_angle)
+                    last_occu = 1
+                else:
+                    dmax = new_l*cos(head_angle)
+                    last_occu = 0
+
+            except:
+                dmin = cos(head_angle) * self.L_MIN
+                dmax = cos(head_angle) * ray_l
+                last_occu = 1
         return np.array([dmin,dmax,last_occu,ray_angle])
 
     def _ray2world(self, R_pose, ray_combo, unit=1):
