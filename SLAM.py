@@ -170,8 +170,8 @@ class SLAM(object):
 
         new_particles = np.zeros(self.particles_.shape)
         for i in range(self.num_p_):
-            # new_particles[:,i] = tf.twoDSmartPlus(tf.twoDSmartPlus(self.particles_[:,i], tf.twoDSmartMinus(odom_curr, odom_prev)), noise_vectors[:,i])
-            new_particles[:,i] = tf.twoDSmartPlus(self.particles_[:,i], noise_vectors[:,i])
+            new_particles[:,i] = tf.twoDSmartPlus(tf.twoDSmartPlus(self.particles_[:,i], tf.twoDSmartMinus(odom_curr, odom_prev)), noise_vectors[:,i])
+            # new_particles[:,i] = tf.twoDSmartPlus(self.particles_[:,i], noise_vectors[:,i])
         self.particles_ = new_particles
 
 
@@ -327,7 +327,8 @@ class SLAM(object):
             self.log_odds_[x_map[:-1],y_map[:-1]] += np.log(self.p_false_)
             self.log_odds_[x_map[-1],y_map[-1]] += np.log(self.p_true_)*scan_clean[2,i]
 
-        MAP['map'] = self.log_odds_>self.logodd_thresh_
+        if t == self.num_data_ - 1:
+            MAP['map'] = self.log_odds_>self.logodd_thresh_
 
 if __name__ == "__main__":
     slam_inc = SLAM()

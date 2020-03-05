@@ -73,7 +73,7 @@ def test_prediction(src_dir, dataset_id=0, split_name='train', log_dir='logs', i
     num_p = 3
     weights = np.ones(num_p) * 1.0/num_p
     particles = np.zeros((3, num_p), dtype=np.float64)
-    mov_cov = np.array([[1e-8, 0, 0], [0, 1e-8, 0], [0, 0, 1e-8]])
+    mov_cov = np.array([[1e-1, 0, 0], [0, 1e-1, 0], [0, 0, 1e-1]])
 
     slam_inc._init_particles(num_p=num_p, particles=particles, weights=weights, mov_cov=mov_cov)
 
@@ -158,10 +158,10 @@ def particle_SLAM(src_dir, dataset_id=0, split_name='train', running_mode='test_
 
     # Number of particles 
     #TODO: change the number of particles
-    num_p = 200
+    num_p = 100
 
     #TODO: change the process' covariance matrix 
-    mov_cov = np.array([[1e-8, 0, 0],[0, 1e-8, 0],[0, 0 , 1e-6]])
+    mov_cov = np.array([[1e-8, 0, 0],[0, 1e-8, 0],[0, 0 , 1e-2]])
 
     #TODO: set a threshold value of probability to consider a map's cell occupied  
     p_thresh = 0.6
@@ -211,59 +211,59 @@ def particle_SLAM(src_dir, dataset_id=0, split_name='train', running_mode='test_
 
     # pdb.set_trace()
 
-#    for t in tqdm.tqdm(range(t0, num_steps-t0)):
-#        # Ignore lidar scans that are obtained before the first IMU
-#        if slam_inc.lidar_.data_[t]['t'][0][0] - slam_inc.joints_.data_['ts'][0][0] < 0:
-#            continue
-#        if not build_first_map:
-#            slam_inc._build_first_map(t)
-#            t0 = t
-#            build_first_map = True
-#            continue
-#
-#        # Prediction
-#        slam_inc._predict(t)
-#
-#        # Update
-#        slam_inc._update(t,t0=t0,fig='off')
-#
-#        # Resample particles if necessary
-#        num_eff = 1.0/np.sum(np.dot(slam_inc.weights_,slam_inc.weights_))
-#        logging.debug('>> Number of effective particles: %.2f'%num_eff)
-#
-#        if num_eff < slam_inc.percent_eff_p_thresh_*slam_inc.num_p_:
-#            num_resamples += 1
-#            logging.debug('>> Resampling since this < threshold={0}| Resampling times/t = {1}/{2}'.format(\
-#                slam_inc.percent_eff_p_thresh_*slam_inc.num_p_, num_resamples, t-t0 + 1))
-#            [slam_inc.particles_,slam_inc.weights_] = prob.stratified_resampling(\
-#                slam_inc.particles_,slam_inc.weights_,slam_inc.num_p_)
-#
-#        # Plot the estimated trajectory
-#        if (t - t0 + 1)%1000 == 0 or t==num_steps-1:
-#            # Save the result 
-#            log_file = log_dir + '/SLAM_' + split_name + '_' + str(dataset_id) + '.pkl'
-#            try:
-#                with open(log_file, 'wb') as f:
-#                    pickle.dump(slam_inc,f,pickle.HIGHEST_PROTOCOL)
-#                print(">> Save the result to: %s"%log_file)
-#            except Exception as e:
-#                print('Unable to write data to', log_file, ':', e)
-#                raise
-#
-#
-#            # Gen map + trajectory
-#            MAP_2_display = genMap(slam_inc, t)
-#            MAP_fig_path = log_dir + '/processing_SLAM_map_'+ split_name + '_' + str(dataset_id) + '.jpg'
-#            cv2.imwrite(MAP_fig_path, MAP_2_display)
-#            plt.title('Estimated Map at time stamp %d/%d'%(t, num_steps - t0 + 1))
-#            plt.imshow(MAP_2_display)
-#            plt.pause(0.01)
-#
-#            logging.debug(">> Save %s"%MAP_fig_path)
+    for t in tqdm.tqdm(range(t0, num_steps-t0)):
+        # Ignore lidar scans that are obtained before the first IMU
+        if slam_inc.lidar_.data_[t]['t'][0][0] - slam_inc.joints_.data_['ts'][0][0] < 0:
+            continue
+        if not build_first_map:
+            slam_inc._build_first_map(t)
+            t0 = t
+            build_first_map = True
+            continue
+
+        # Prediction
+        slam_inc._predict(t)
+
+        # Update
+        slam_inc._update(t,t0=t0,fig='off')
+
+        # Resample particles if necessary
+        num_eff = 1.0/np.sum(np.dot(slam_inc.weights_,slam_inc.weights_))
+        logging.debug('>> Number of effective particles: %.2f'%num_eff)
+
+        if num_eff < slam_inc.percent_eff_p_thresh_*slam_inc.num_p_:
+            num_resamples += 1
+            logging.debug('>> Resampling since this < threshold={0}| Resampling times/t = {1}/{2}'.format(\
+                slam_inc.percent_eff_p_thresh_*slam_inc.num_p_, num_resamples, t-t0 + 1))
+            [slam_inc.particles_,slam_inc.weights_] = prob.stratified_resampling(\
+                slam_inc.particles_,slam_inc.weights_,slam_inc.num_p_)
+
+        # Plot the estimated trajectory
+        if (t - t0 + 1)%1000 == 0 or t==num_steps-1:
+            # Save the result 
+            log_file = log_dir + '/SLAM_' + split_name + '_' + str(dataset_id) + '.pkl'
+            try:
+                with open(log_file, 'wb') as f:
+                    pickle.dump(slam_inc,f,pickle.HIGHEST_PROTOCOL)
+                print(">> Save the result to: %s"%log_file)
+            except Exception as e:
+                print('Unable to write data to', log_file, ':', e)
+                raise
+
+
+            # Gen map + trajectory
+            MAP_2_display = genMap(slam_inc, t)
+            MAP_fig_path = log_dir + '/processing_SLAM_map_'+ split_name + '_' + str(dataset_id) + '.jpg'
+            cv2.imwrite(MAP_fig_path, MAP_2_display)
+            plt.title('Estimated Map at time stamp %d/%d'%(t, num_steps - t0 + 1))
+            plt.imshow(MAP_2_display)
+            plt.pause(0.01)
+
+            logging.debug(">> Save %s"%MAP_fig_path)
 
     # Return best_p which are an array of size 3xnum_data that represents the best particle over the whole time stamp
     #
-    slam_inc.best_p_ = np.random.rand(3, num_steps)
+    # slam_inc.best_p_ = np.random.rand(3, num_steps)
     return slam_inc.best_p_
 
 def main():
