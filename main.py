@@ -158,7 +158,7 @@ def particle_SLAM(src_dir, dataset_id=0, split_name='train', running_mode='test_
 
     # Number of particles 
     #TODO: change the number of particles
-    num_p = 200
+    num_p = 50
 
     #TODO: change the process' covariance matrix 
     mov_cov = np.array([[1e-8, 0, 0],[0, 1e-8, 0],[0, 0 , 1e-8]])
