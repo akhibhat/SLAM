@@ -80,31 +80,31 @@ def update_weights(weights, correlations):
 
     return np.exp(log_weights)
 
-def test_simple_update_weights():
-    N = 4
-    weights = np.ones(N)*1.0/N
-    print('--Weights:',weights)
-    for i in range(5):
-        print ('\n--------Step {0}---------'.format(i))
-        correlations = np.random.randint(0,100,N).reshape(N)
-        print ('--Correlations:',correlations)
-        updated_weights = simple_update_weights(weights,correlations)
-        print ('** updated weights:')
-        print (updated_weights)
-        weights = updated_weights
-
-def test_update_weights():
-    N = 4
-    weights = np.ones(N)*1.0/N
-    print ('--Weights:',weights)
-    for i in range(5):
-	print ('\n--------Step {0}---------'.format(i))
-	correlations = np.random.randint(0,100,N).reshape(N)
-        print ('--Correlations:',correlations)
-	updated_weights = update_weights(weights,correlations)
-	print ('** updated weights:')
-	print (updated_weights)
-	weights = updated_weights
+#def test_simple_update_weights():
+#    N = 4
+#    weights = np.ones(N)*1.0/N
+#    print('--Weights:',weights)
+#    for i in range(5):
+#        print ('\n--------Step {0}---------'.format(i))
+#        correlations = np.random.randint(0,100,N).reshape(N)
+#        print ('--Correlations:',correlations)
+#        updated_weights = simple_update_weights(weights,correlations)
+#        print ('** updated weights:')
+#        print (updated_weights)
+#        weights = updated_weights
+#
+#def test_update_weights():
+#    N = 4
+#    weights = np.ones(N)*1.0/N
+#    print ('--Weights:',weights)
+#    for i in range(5):
+#    print ('\n--------Step {0}---------'.format(i))
+#    correlations = np.random.randint(0,100,N).reshape(N)
+#    print ('--Correlations:',correlations)
+#    updated_weights = update_weights(weights,correlations)
+#    print ('** updated weights:')
+#    print (updated_weights)
+#    weights = updated_weights
 
 def rec_pdf_from_log_odds(odd_value):
     return 1 - 1/(1 + np.exp(odd_value))

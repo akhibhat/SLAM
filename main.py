@@ -262,8 +262,8 @@ def particle_SLAM(src_dir, dataset_id=0, split_name='train', running_mode='test_
             logging.debug(">> Save %s"%MAP_fig_path)
 
     # Return best_p which are an array of size 3xnum_data that represents the best particle over the whole time stamp
-    # return slam_inc.best_p_
-    return np.random.rand(3, slam_inc.num_data_)
+    return slam_inc.best_p_
+    # return np.random.rand(3, slam_inc.num_data_)
 
 def main():
     parser = argparse.ArgumentParser('main function')

@@ -263,7 +263,7 @@ class SLAM(object):
         best_particle_idx = np.argmax(self.weights_)
 
         self.best_p_[:,t] = self.particles_[:,best_particle_idx]
-        # self.best_p_indices_[:,t] =
+        self.best_p_indices_[:,t] = self.lidar_._physicPos2Pos(MAP, self.best_p_[0:2,t])
         best_part_pos = self.best_p_[:,t]
 
         world_2_part = tf.twoDTransformation(best_part_pos[0], best_part_pos[1], best_part_pos[1])
