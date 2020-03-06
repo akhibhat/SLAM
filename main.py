@@ -186,7 +186,7 @@ def particle_SLAM(src_dir, dataset_id=0, split_name='train', running_mode='test_
 
     # Read data
     slam_inc._read_data(src_dir, dataset_id, split_name)
-    num_steps = 0.8 * slam_inc.num_data_
+    num_steps = int(0.8 * slam_inc.num_data_)
 
     # Characterize the sensors' specifications
     slam_inc._characterize_sensor_specs(p_thresh)
