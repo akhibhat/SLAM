@@ -73,7 +73,7 @@ def test_prediction(src_dir, dataset_id=0, split_name='train', log_dir='logs', i
     num_p = 3
     weights = np.ones(num_p) * 1.0/num_p
     particles = np.zeros((3, num_p), dtype=np.float64)
-    mov_cov = np.array([[1e-8, 0, 0], [0, 1e-8, 0], [0, 0, 1e-8]])
+    mov_cov = np.array([[1e-8, 0, 0], [0, 1e-8, 0], [0, 0, 1e-4]])
 
     slam_inc._init_particles(num_p=num_p, particles=particles, weights=weights, mov_cov=mov_cov)
 
@@ -158,10 +158,10 @@ def particle_SLAM(src_dir, dataset_id=0, split_name='train', running_mode='test_
 
     # Number of particles 
     #TODO: change the number of particles
-    num_p = 100
+    num_p = 200
 
     #TODO: change the process' covariance matrix 
-    mov_cov = np.array([[1e-8, 0, 0],[0, 1e-8, 0],[0, 0 , 200]])
+    mov_cov = np.array([[1e-8, 0, 0],[0, 1e-8, 0],[0, 0 , 1e-13]])
 
     #TODO: set a threshold value of probability to consider a map's cell occupied  
     p_thresh = 0.6

@@ -266,9 +266,9 @@ class SLAM(object):
         MAP = self.MAP_
         scans = self.lidar_.data_[t]['scan'][0]
         joint_idx = np.where(self.lidar_.data_[t]['t'][0]<=self.joints_.data_['ts'][0])[0][0]
-        first_head_angle = self.joints_.data_['head_angles'][1,joint_idx]
+        first_head_angle, neck_angle = self.joints_.data_['head_angles'][:,joint_idx]
 
-        self.lidar_angles = np.linspace(-2.356,2.356,len(scans))
+        self.lidar_angles = np.linspace(-2.355,2.355,len(scans))
         scan_clean = np.zeros((4,len(self.lidar_angles)))
         scan_world = np.zeros((4,len(self.lidar_angles)))
         for i in range(len(self.lidar_angles)):
@@ -280,45 +280,27 @@ class SLAM(object):
         for particle_num in range(self.particles_.shape[1]):
             pose = self.particles_[:,particle_num]
 
-            scan_world = self.lidar_._ray2worldPhysicsPos(pose,first_head_angle,scan_clean)
+            scan_world = self.lidar_._ray2worldPhysicsPos(pose,neck_angle,scan_clean)
 
-            #[sx,sy] = self.lidar_._physicPos2Pos(MAP,scan_world[0:2,:])
             [ex,ey] = self.lidar_._physicPos2Pos(MAP,scan_world[2:4,:])
-            #ex,ey = np.clip(ex,0,800),np.clip(ey,0,800)
-
 
             corr[particle_num] = prob.mapCorrelation(MAP['map'],np.array([ex,ey]))
 
         self.weights_ = prob.update_weights(self.weights_,corr)
 
+        best_particle_idx = np.argmax(self.weights_)
+        pose = self.particles_[:,best_particle_idx]
 
-        pose = self.particles_[:,np.where(np.max(self.weights_)==self.weights_)[0][0]]
-        #pdb.set_trace()
+        # pose = self.particles_[:,np.where(np.max(self.weights_)==self.weights_)[0][0]]
 
-        self.best_p_indices_[:,t] = self.lidar_._physicPos2Pos(MAP,pose[0:2])
         self.best_p_[:,t] = pose
+        self.best_p_indices_[:,t] = self.lidar_._physicPos2Pos(MAP,pose[0:2])
         #print('\n--------Build the map--------')
         # extract first lidar scan
-        lidar_read = self.lidar_.data_[t]
 
-        # extract corresponding joint data
-        joint_idx = np.where(lidar_read['t'][0]<=self.joints_.data_['ts'][0])[0][0]
-        first_head_angle = self.joints_.data_['head_angles'][1,joint_idx]
+        # scan_world = np.zeros((4,len(self.lidar_angles)))
 
-        pose = lidar_read['pose'][0]
-        scans = lidar_read['scan'][0]
-        lidar_res = lidar_read['res'][0]
-
-        self.lidar_angles = np.linspace(-2.356,2.356,len(scans))
-        scan_clean = np.zeros((4,len(self.lidar_angles)))
-        scan_world = np.zeros((4,len(self.lidar_angles)))
-        for i in range(len(self.lidar_angles)):
-            scan_clean[:,i] = self.lidar_._remove_ground(self.h_lidar_,ray_angle=self.lidar_angles[i],ray_l=scans[i],head_angle=first_head_angle)
-
-#        scan_clean = self.lidar_._remove_ground(self.h_lidar_, self.lidar_angles, scans, first_head_angle)
-
-        scan_world = self.lidar_._ray2worldPhysicsPos(pose,first_head_angle,scan_clean)
-
+        scan_world = self.lidar_._ray2worldPhysicsPos(pose,neck_angle,scan_clean)
 
         [sx,sy] = self.lidar_._physicPos2Pos(MAP,scan_world[0:2,:])
         [ex,ey] = self.lidar_._physicPos2Pos(MAP,scan_world[2:4,:])
@@ -334,10 +316,10 @@ class SLAM(object):
         MAP['map'] = self.log_odds_>self.logodd_thresh_
 
         covar = np.cov(self.particles_)
-        print(covar)
+        # print(covar)
 
-        #if covar[2,2] < 0.000001:
-        #    print("Too concentrated")
+        # if covar[2,2] < 0.000001:
+        #     print("Too concentrated")
 
 if __name__ == "__main__":
     slam_inc = SLAM()
