@@ -158,7 +158,7 @@ def particle_SLAM(src_dir, dataset_id=0, split_name='train', running_mode='test_
 
     # Number of particles 
     #TODO: change the number of particles
-    num_p = 200
+    num_p = 100
 
     #TODO: change the process' covariance matrix 
     mov_cov = np.array([[1e-8, 0, 0],[0, 1e-8, 0],[0, 0 , 1e-8]])
@@ -186,7 +186,7 @@ def particle_SLAM(src_dir, dataset_id=0, split_name='train', running_mode='test_
 
     # Read data
     slam_inc._read_data(src_dir, dataset_id, split_name)
-    num_steps = slam_inc.num_data_
+    num_steps = 0.8 * slam_inc.num_data_
 
     # Characterize the sensors' specifications
     slam_inc._characterize_sensor_specs(p_thresh)
@@ -269,7 +269,7 @@ def main():
     parser = argparse.ArgumentParser('main function')
     parser.add_argument('--src_dir',    help="Directory to the data...i.e: data", default='data', type=str)
     parser.add_argument('--log_dir',    help="Directory to save logs",            default='logs', type=str)
-    parser.add_argument('--dataset_id', help="Dataset id=0, 1, 2. ..?",           default=0, type=int)
+    parser.add_argument('--dataset_id', help="Dataset id=0, 1, 2. ..?",           default=3, type=int)
     parser.add_argument('--split_name', help="Train or test split?",              default='train', type=str)
     parser.add_argument('--running_mode', help="Test prediction/Update/SLAM?",    default='test_SLAM', type=str,\
                                         choices=['test_SLAM', 'test_prediction', 'test_update'])
