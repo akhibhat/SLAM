@@ -203,8 +203,8 @@ class SLAM(object):
 
         new_particles = np.zeros(self.particles_.shape)
         for i in range(self.num_p_):
-            new_particles[:,i] = tf.twoDSmartPlus(tf.twoDSmartPlus(self.particles_[:,i], tf.twoDSmartMinus(odom_curr, odom_prev)), noise_vectors[:,i])
-            # new_particles[:,i] = tf.twoDSmartPlus(self.particles_[:,i], noise_vectors[:,i])
+            # new_particles[:,i] = tf.twoDSmartPlus(tf.twoDSmartPlus(self.particles_[:,i], tf.twoDSmartMinus(odom_curr, odom_prev)), noise_vectors[:,i])
+            new_particles[:,i] = tf.twoDSmartPlus(self.particles_[:,i], noise_vectors[:,i])
             # new_particles[:,i] = tf.twoDSmartPlus(self.particles_[:,i], tf.twoDSmartMinus(odom_curr, odom_prev))
         self.particles_ = new_particles
 
@@ -265,6 +265,9 @@ class SLAM(object):
 
         best_particle_idx = np.argmax(self.weights_)
         best_particle = self.particles_[:,best_particle_idx]
+
+        if t % 100 == 0:
+            print(self.weights_)
 
         self.best_p_[:,t] = best_particle
         self.best_p_indices_[:,t] = self.lidar_._physicPos2Pos(MAP, best_particle[:2])

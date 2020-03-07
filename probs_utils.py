@@ -94,4 +94,4 @@ def mapCorrelation(map, occupied_indices):
     return np.sum(map[occupied_indices[0,:], occupied_indices[1,:]])
 
 if __name__ == "__main__":
-    test_update_weights()
+    test_stratified_resampling()
