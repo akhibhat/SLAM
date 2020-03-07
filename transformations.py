@@ -1,7 +1,7 @@
 import math
 import numpy
 import numpy as np
-from math import cos, sin
+from numpy import cos, sin
 from copy import deepcopy
 
 def twoDSmartPlus(x1,x2,type='pose'):
