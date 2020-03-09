@@ -136,7 +136,7 @@ class SLAM(object):
         # Extract data from first lidar scan
         first_lidar = self.lidar_.data_[0]
         # Extract corresponding joint data
-        joint_idx = np.where(first_lidar['t'][0] <= self.joints_.data_['ts'][0])[0][0]
+        joint_idx = np.argmin(abs(first_lidar['t'][0] - self.joints_.data_['ts'][0]))
         head_angle, neck_angle = self.joints_.data_['head_angles'][:,joint_idx]
 
         pose = first_lidar['pose'][0]
@@ -307,7 +307,7 @@ class SLAM(object):
 
 if __name__ == "__main__":
     slam_inc = SLAM()
-    slam_inc._read_data('data/train', 3, 'train')
+    slam_inc._read_data('data/train', 0, 'train')
     slam_inc._init_particles(num_p=100)
     slam_inc._init_map()
     slam_inc._build_first_map()
