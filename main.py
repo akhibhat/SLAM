@@ -161,7 +161,7 @@ def particle_SLAM(src_dir, dataset_id=0, split_name='train', running_mode='test_
     num_p = 100
 
     #TODO: change the process' covariance matrix 
-    mov_cov = np.array([[8e-5, 0, 0],[0, 8e-5, 0],[0, 0, 8e-5]])
+    mov_cov = np.array([[1.2e-5, 0, 0],[0, 1.2e-5, 0],[0, 0, 1.2e-4]])
 
     #TODO: set a threshold value of probability to consider a map's cell occupied  
     p_thresh = 0.6
