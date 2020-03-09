@@ -187,6 +187,7 @@ class SLAM(object):
 
         self.log_odds_ += mask
 
+        MAP['map'] = self.log_odds_
         # End code
         self.MAP_ = MAP
 
@@ -266,8 +267,8 @@ class SLAM(object):
         best_particle_idx = np.argmax(self.weights_)
         best_particle = self.particles_[:,best_particle_idx]
 
-        if t % 100 == 0:
-            print(self.weights_)
+        #if t % 100 == 0:
+        #    print(self.weights_)
 
         self.best_p_[:,t] = best_particle
         self.best_p_indices_[:,t] = self.lidar_._physicPos2Pos(MAP, best_particle[:2])
@@ -297,6 +298,8 @@ class SLAM(object):
         cv2.drawContours(image=mask, contours=[all_values], contourIdx=0, color=np.log(self.p_false_), thickness=cv2.FILLED)
 
         self.log_odds_ += mask
+
+        MAP['map'] = self.log_odds_
 
         self.MAP_ = MAP
         return MAP
