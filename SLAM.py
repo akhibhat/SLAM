@@ -72,7 +72,7 @@ class SLAM(object):
         self.weights_ = 1.0/self.num_p_*np.ones(self.num_p_) if weights is None else weights
 
         # Position of the best particle after update on the map
-        self.best_p_indices_ = np.zeros((2, self.num_data_), dtype=np.int64)
+        self.best_p_indices_ = np.ones((2, self.num_data_), dtype=np.int64) * 400
         # Best particles
         self.best_p_ = np.zeros((3, self.num_data_))
         # Corresponding time stamps of best particles
@@ -204,8 +204,8 @@ class SLAM(object):
 
         new_particles = np.zeros(self.particles_.shape)
         for i in range(self.num_p_):
-            new_particles[:,i] = tf.twoDSmartPlus(tf.twoDSmartPlus(self.particles_[:,i], tf.twoDSmartMinus(odom_curr, odom_prev)), noise_vectors[:,i])
-            # new_particles[:,i] = tf.twoDSmartPlus(self.particles_[:,i], noise_vectors[:,i])
+            # new_particles[:,i] = tf.twoDSmartPlus(tf.twoDSmartPlus(self.particles_[:,i], tf.twoDSmartMinus(odom_curr, odom_prev)), noise_vectors[:,i])
+            new_particles[:,i] = tf.twoDSmartPlus(self.particles_[:,i], noise_vectors[:,i])
             # new_particles[:,i] = tf.twoDSmartPlus(self.particles_[:,i], tf.twoDSmartMinus(odom_curr, odom_prev))
         self.particles_ = new_particles
 
