@@ -219,7 +219,7 @@ class SLAM(object):
 
         MAP = self.MAP_
         scans = self.lidar_.data_[t]['scan'][0]
-        joint_idx = np.where(self.lidar_.data_[t]['t'][0]<=self.joints_.data_['ts'][0])[0][0]
+        joint_idx = np.argmin(abs(self.lidar_.data_[t]['t'][0] - self.joints_.data_['ts'][0]))
         head_angle, neck_angle = self.joints_.data_['head_angles'][:,joint_idx]
 
         ray_angles = np.linspace(-2.355,2.355,len(scans))
